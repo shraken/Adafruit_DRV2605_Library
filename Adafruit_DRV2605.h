@@ -75,9 +75,15 @@ typedef enum _DEVICE_ID {
     DEVICE_ID_DRV2605L = 7,
 } DEVICE_ID;
 
+typedef enum _ACTUATOR_TYPE {
+    ACTUATOR_TYPE_ERM = 0,
+    ACTUATOR_TYPE_LRA = 1,
+} ACTUATOR_TYPE;
+
 class Adafruit_DRV2605 {
  public:
 
+  Adafruit_DRV2605(uint8_t actuatorType);
   Adafruit_DRV2605(void);
   boolean begin(void);  
 
@@ -98,6 +104,6 @@ class Adafruit_DRV2605 {
   void useLRA();
 
  private:
-
+  uint8_t _actuatorType;
 };
 

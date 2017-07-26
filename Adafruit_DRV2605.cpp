@@ -32,8 +32,12 @@
 /**************************************************************************/
 // I2C, no address adjustments or pins
 Adafruit_DRV2605::Adafruit_DRV2605() {
+  _actuatorType = ACTUATOR_TYPE_ERM;
 }
 
+Adafruit_DRV2605::Adafruit_DRV2605(uint8_t actuatorType) {
+  _actuatorType = actuatorType;
+}
 
 /**************************************************************************/
 /*! 
@@ -43,10 +47,12 @@ Adafruit_DRV2605::Adafruit_DRV2605() {
 boolean Adafruit_DRV2605::begin() {
   Wire.begin();
   uint8_t id = getDeviceId();
-  //Serial.print("Status 0x"); Serial.println(id, HEX);
-
-  if ((id != DEVICE_ID_DRV2605) || (id != DEVICE_ID_DRV2604) ||
-      (id != DEVICE_ID_DRV2604L) || (id != DEVICE_ID_DRV2605L)) {
+  /*
+  Serial.print("ID: ");
+  Serial.println(id, DEC);
+  */
+  if ((id != DEVICE_ID_DRV2605) && (id != DEVICE_ID_DRV2604) &&
+      (id != DEVICE_ID_DRV2604L) && (id != DEVICE_ID_DRV2605L)) {
     return false;
   }
 
@@ -66,12 +72,25 @@ boolean Adafruit_DRV2605::begin() {
   writeRegister8(DRV2605_REG_BREAK, 0);
   writeRegister8(DRV2605_REG_AUDIOMAX, 0x64);
   
-  // ERM open loop
-  
-  // turn off N_ERM_LRA
-  writeRegister8(DRV2605_REG_FEEDBACK, readRegister8(DRV2605_REG_FEEDBACK) & 0x7F);
-  // turn on ERM_OPEN_LOOP
-  writeRegister8(DRV2605_REG_CONTROL3, readRegister8(DRV2605_REG_CONTROL3) | 0x20);
+  switch (_actuatorType) {
+    case ACTUATOR_TYPE_LRA:
+      // turn on N_ERM_LRA (LRA actuator)
+      useLRA();
+
+      // auto-resonance mode enabled
+      writeRegister8(DRV2605_REG_CONTROL3, readRegister8(DRV2605_REG_CONTROL3) & ~(0x01));
+      break;
+
+    case ACTUATOR_TYPE_ERM:
+    default:
+      // ERM open loop
+      // turn off N_ERM_LRA (ERM actuator)
+      useERM();
+
+      // turn on ERM_OPEN_LOOP
+      writeRegister8(DRV2605_REG_CONTROL3, readRegister8(DRV2605_REG_CONTROL3) | 0x20);
+      break;
+  }
 
   return true;
 }
@@ -106,7 +125,7 @@ void Adafruit_DRV2605::setRealtimeValue(uint8_t rtp) {
 }
 
 uint8_t Adafruit_DRV2605::getDeviceId() {
-  return readRegister8(DRV2605_REG_STATUS);
+  return ((readRegister8(DRV2605_REG_STATUS) & 0xE0) >> 5);
 }
 
 /********************************************************************/
