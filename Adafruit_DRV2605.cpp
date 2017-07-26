@@ -42,9 +42,16 @@ Adafruit_DRV2605::Adafruit_DRV2605() {
 /**************************************************************************/
 boolean Adafruit_DRV2605::begin() {
   Wire.begin();
-  uint8_t id = readRegister8(DRV2605_REG_STATUS);
+  uint8_t id = getDeviceId();
   //Serial.print("Status 0x"); Serial.println(id, HEX);
-  
+
+  if ((id != DEVICE_ID_DRV2605) || (id != DEVICE_ID_DRV2604) ||
+      (id != DEVICE_ID_DRV2604L) || (id != DEVICE_ID_DRV2605L)) {
+    return false;
+  }
+
+  // device reset
+  reset();
   writeRegister8(DRV2605_REG_MODE, 0x00); // out of standby
   
   writeRegister8(DRV2605_REG_RTPIN, 0x00); // no real-time-playback
@@ -77,6 +84,11 @@ void Adafruit_DRV2605::selectLibrary(uint8_t lib) {
   writeRegister8(DRV2605_REG_LIBRARY, lib);
 }
 
+void Adafruit_DRV2605::reset() {
+  // device reset - write 1 to DEV_RESET field
+  writeRegister8(DRV2605_REG_MODE, 0x80);
+}
+
 void Adafruit_DRV2605::go() {
   writeRegister8(DRV2605_REG_GO, 1);
 }
@@ -91,6 +103,10 @@ void Adafruit_DRV2605::setMode(uint8_t mode) {
 
 void Adafruit_DRV2605::setRealtimeValue(uint8_t rtp) {
   writeRegister8(DRV2605_REG_RTPIN, rtp);
+}
+
+uint8_t Adafruit_DRV2605::getDeviceId() {
+  return readRegister8(DRV2605_REG_STATUS);
 }
 
 /********************************************************************/

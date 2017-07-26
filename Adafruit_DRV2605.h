@@ -68,6 +68,12 @@
 #define DRV2605_REG_VBAT 0x21
 #define DRV2605_REG_LRARESON 0x22
 
+typedef enum _DEVICE_ID {
+    DEVICE_ID_DRV2605 = 3,
+    DEVICE_ID_DRV2604 = 4,
+    DEVICE_ID_DRV2604L = 6,
+    DEVICE_ID_DRV2605L = 7,
+} DEVICE_ID;
 
 class Adafruit_DRV2605 {
  public:
@@ -79,10 +85,13 @@ class Adafruit_DRV2605 {
   uint8_t readRegister8(uint8_t reg);
   void setWaveform(uint8_t slot, uint8_t w);
   void selectLibrary(uint8_t lib);
+  void reset(void);
   void go(void);
   void stop(void);
   void setMode(uint8_t mode);
   void setRealtimeValue(uint8_t rtp);
+  uint8_t getDeviceId(void);
+
   // Select ERM (Eccentric Rotating Mass) or LRA (Linear Resonant Actuator) vibration motor
   // The default is ERM, which is more common
   void useERM();
